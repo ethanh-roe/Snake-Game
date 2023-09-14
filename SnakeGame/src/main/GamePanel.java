@@ -12,14 +12,14 @@ import java.util.Random;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-public class GamePanel extends JPanel implements ActionListener{
+public class GamePanel extends JPanel implements ActionListener {
 	Random random;
 	Timer timer;
 	static final int SCREEN_HEIGHT = 800;
 	static final int SCREEN_WIDTH = 800;
-	static final int SQUARE_SIZE = 40;
-	static final int BOARD_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT)/SQUARE_SIZE;
-	static final int DELAY = 100;
+	static final int SQUARE_SIZE = 50;
+	static final int BOARD_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / SQUARE_SIZE;
+	static final int DELAY = 120;
 	static int NUM_APPLES = 5;
 	final int x[] = new int[BOARD_UNITS];
 	final int y[] = new int[BOARD_UNITS];
@@ -28,10 +28,10 @@ public class GamePanel extends JPanel implements ActionListener{
 	int snakeLength = 3;
 	int pointsEaten;
 	char direction = 'R';
+	char nextDirection;
 	boolean running = false;
-	boolean started = false;
 
-	GamePanel(){
+	GamePanel() {
 		random = new Random();
 		this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
 		this.setFocusable(true);
@@ -44,58 +44,60 @@ public class GamePanel extends JPanel implements ActionListener{
 		y[2] = 3 * SQUARE_SIZE;
 		startGame();
 	}
-	
+
+	public void gameOver() {
+		running = false;
+	}
+
 	public void startGame() {
 		spawnApple();
-		running = true;
 		timer = new Timer(DELAY, this);
 		timer.start();
 	}
-	
+
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		colorSquares(g);
 		draw(g);
-		
-		
+
 	}
 
 	public void draw(Graphics g) {
 		drawApple(g);
 		drawSnake(g);
 	}
-	
+
 	public void drawApple(Graphics g) {
 		g.setColor(Color.red);
-		for(int i = 0; i < NUM_APPLES; i++) {
+		for (int i = 0; i < NUM_APPLES; i++) {
 			g.fillOval(appleX[i], appleY[i], SQUARE_SIZE, SQUARE_SIZE);
 		}
 	}
-	
+
 	public void drawSnake(Graphics g) {
-		for(int i = 0; i < snakeLength; i++) {
-			if(i == 0) {
+		for (int i = 0; i < snakeLength; i++) {
+			if (i == 0) {
 				g.setColor(Color.magenta);
-			}else {
+			} else {
 				g.setColor(Color.blue);
 			}
 			g.fillOval(x[i], y[i], SQUARE_SIZE, SQUARE_SIZE);
 		}
 	}
-	
+
 	public void colorSquares(Graphics g) {
 		int flip = 0;
-		for(int i = 0; i < SCREEN_HEIGHT / SQUARE_SIZE; i++) {
-			if(i % 2 == 0) {
+		for (int i = 0; i < SCREEN_HEIGHT / SQUARE_SIZE; i++) {
+			if (i % 2 == 0) {
 				flip = 1;
-			}else {
+			} else {
 				flip = 0;
 			}
-			for(int j = 0; j < SCREEN_WIDTH / SQUARE_SIZE; j++) {
-				if(flip == 0) {
+			for (int j = 0; j < SCREEN_WIDTH / SQUARE_SIZE; j++) {
+				if (flip == 0) {
 					g.setColor(Color.gray);
 					flip++;
-				}else {
+				} else {
 					g.setColor(Color.darkGray);
 					flip--;
 				}
@@ -103,17 +105,17 @@ public class GamePanel extends JPanel implements ActionListener{
 			}
 		}
 	}
-	
+
 	public void spawnApple() {
 		boolean exit = false;
-		for(int i = 0; i < NUM_APPLES; i++) {
-			appleX[i] = random.nextInt((int)(SCREEN_WIDTH / SQUARE_SIZE)) * SQUARE_SIZE;
-			appleY[i] = random.nextInt((int)(SCREEN_HEIGHT / SQUARE_SIZE)) * SQUARE_SIZE;
-			for(int j = 0; j < snakeLength; j++) {
-				if(appleX[i] == x[j] && appleY[i] == y[j]) {
+		for (int i = 0; i < NUM_APPLES; i++) {
+			appleX[i] = random.nextInt((int) (SCREEN_WIDTH / SQUARE_SIZE)) * SQUARE_SIZE;
+			appleY[i] = random.nextInt((int) (SCREEN_HEIGHT / SQUARE_SIZE)) * SQUARE_SIZE;
+			for (int j = 0; j < snakeLength; j++) {
+				if (appleX[i] == x[j] && appleY[i] == y[j]) {
 					exit = true;
 				}
-				if(exit) {
+				if (exit) {
 					i--;
 					exit = false;
 					break;
@@ -121,129 +123,167 @@ public class GamePanel extends JPanel implements ActionListener{
 			}
 		}
 	}
-	
+
 	public void move() {
-		switch(direction) {
-		 case 'U':
-			 for(int i = snakeLength; i > 0; i--) {
-				 x[i] = x[i - 1];
-				 y[i] = y[i - 1];
-			 }
-			 y[0] -= SQUARE_SIZE;
-			 break;
-			 
-		 case 'D':
-			 for(int i = snakeLength; i > 0; i--) {
-				 x[i] = x[i - 1];
-				 y[i] = y[i - 1];
-			 }
-			 y[0] += SQUARE_SIZE;
-			 break;
-			 
-		 case 'L':
-			 for(int i = snakeLength; i > 0; i--) {
-				 x[i] = x[i - 1];
-				 y[i] = y[i - 1];
-			 }
-			 x[0] -= SQUARE_SIZE;
-			 break;
-			 
-		 case 'R':
-			 for(int i = snakeLength; i > 0; i--) {
-				 x[i] = x[i - 1];
-				 y[i] = y[i - 1];
-			 }
-			 x[0] += SQUARE_SIZE;
-			 break;
-			
+		switch (direction) {
+		case 'U':
+			for (int i = snakeLength; i > 0; i--) {
+				x[i] = x[i - 1];
+				y[i] = y[i - 1];
+			}
+			y[0] -= SQUARE_SIZE;
+			break;
+
+		case 'D':
+			for (int i = snakeLength; i > 0; i--) {
+				x[i] = x[i - 1];
+				y[i] = y[i - 1];
+			}
+			y[0] += SQUARE_SIZE;
+			break;
+
+		case 'L':
+			for (int i = snakeLength; i > 0; i--) {
+				x[i] = x[i - 1];
+				y[i] = y[i - 1];
+			}
+			x[0] -= SQUARE_SIZE;
+			break;
+
+		case 'R':
+			for (int i = snakeLength; i > 0; i--) {
+				x[i] = x[i - 1];
+				y[i] = y[i - 1];
+			}
+			x[0] += SQUARE_SIZE;
+			break;
+
 		}
 	}
-	
+
 	public void growSnake() {
 		snakeLength++;
-		
+		System.out.println("score " + snakeLength);
 	}
-	
+
 	public void checkApple() {
-		for(int i = 0; i < NUM_APPLES; i++) {
-			if(appleX[i] == x[0] && appleY[i] == y[0]) {
+		for (int i = 0; i < NUM_APPLES; i++) {
+			if (appleX[i] == x[0] && appleY[i] == y[0]) {
 				growSnake();
+				appleX[i] = random.nextInt((int) (SCREEN_WIDTH / SQUARE_SIZE)) * SQUARE_SIZE;
+				appleY[i] = random.nextInt((int) (SCREEN_HEIGHT / SQUARE_SIZE)) * SQUARE_SIZE;
 				break;
 			}
 		}
 	}
 
 	public void checkCollision() {
+		switch (direction) {
+		case 'U':
+			for (int i = 1; i < snakeLength; i++) {
+				if (y[0] - SQUARE_SIZE == y[i] && x[0] == x[i] || y[0] - SQUARE_SIZE < 0) {
+					gameOver();
+				}
+			}
+			break;
+
+		case 'D':
+			for (int i = 1; i < snakeLength; i++) {
+				if (y[0] + SQUARE_SIZE == y[i] && x[0] == x[i] || y[0] + SQUARE_SIZE >= SCREEN_HEIGHT) {
+					gameOver();
+				}
+			}
+			break;
+
+		case 'L':
+			for (int i = 1; i < snakeLength; i++) {
+				if (x[0] - SQUARE_SIZE == x[i] && y[0] == y[i] || x[0] - SQUARE_SIZE < 0) {
+					gameOver();
+				}
+			}
+			break;
+
+		case 'R':
+			for (int i = 1; i < snakeLength; i++) {
+				if (x[0] + SQUARE_SIZE == x[i] && y[0] == y[i] || x[0] + SQUARE_SIZE >= SCREEN_WIDTH) {
+					gameOver();
+				}
+			}
+			break;
+		}
+		
 		
 	}
-	
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(!started) {
-			return;
+		if (running) {
+			direction = nextDirection;
+			move();
+			repaint();
+			checkApple();
+			checkCollision();
 		}
-		move();
-		repaint();
 	}
-	
-	public class MyKeyAdapter extends KeyAdapter{
+
+	public class MyKeyAdapter extends KeyAdapter {
 		@Override
 		public void keyPressed(KeyEvent e) {
 			int code = e.getKeyCode();
-			switch(code) {
-			 case KeyEvent.VK_UP:
-				 if(direction == 'D') {
-		        		break;
-		        	}
-				 direction = 'U';
-		            break;
-			 case KeyEvent.VK_W:
-				 if(direction == 'D') {
-		        		break;
-		        	}
-				 direction = 'U';
-				 break;
-		        case KeyEvent.VK_DOWN:
-		        	if(direction == 'U') {
-		        		break;
-		        	}
-		        	direction = 'D';
-		            break;
-		        case KeyEvent.VK_S:
-		        	if(direction == 'U') {
-		        		break;
-		        	}
-		        	direction = 'D';
-		        	break;
-		        case KeyEvent.VK_LEFT:
-		        	if(direction == 'R') {
-		        		break;
-		        	}
-		        	direction = 'L';
-		            break;
-		            
-		        case KeyEvent.VK_A:
-		        	if(direction == 'R') {
-		        		break;
-		        	}
-		        	direction = 'L';
-		        	break;
-		        case KeyEvent.VK_RIGHT :
-		        	if(direction == 'L') {
-		        		break;
-		        	}
-		        	direction = 'R';
-		            break;
-		            
-		        case KeyEvent.VK_D:
-		        	if(direction == 'L') {
-		        		break;
-		        	}
-		        	direction = 'R';
-		        	break;
+			switch (code) {
+			case KeyEvent.VK_UP:
+				if (direction == 'D') {
+					break;
+				}
+				nextDirection = 'U';
+				break;
+			case KeyEvent.VK_W:
+				if (direction == 'D') {
+					break;
+				}
+				nextDirection = 'U';
+				break;
+			case KeyEvent.VK_DOWN:
+				if (direction == 'U') {
+					break;
+				}
+				nextDirection = 'D';
+				break;
+			case KeyEvent.VK_S:
+				if (direction == 'U') {
+					break;
+				}
+				nextDirection = 'D';
+				break;
+			case KeyEvent.VK_LEFT:
+				if (direction == 'R') {
+					break;
+				}
+				nextDirection = 'L';
+				break;
+
+			case KeyEvent.VK_A:
+				if (direction == 'R') {
+					break;
+				}
+				nextDirection = 'L';
+				break;
+			case KeyEvent.VK_RIGHT:
+				if (direction == 'L') {
+					break;
+				}
+				nextDirection = 'R';
+				break;
+
+			case KeyEvent.VK_D:
+				if (direction == 'L') {
+					break;
+				}
+				nextDirection = 'R';
+				break;
 			}
-			started = true;
-			
+			running = true;
+
 		}
 	}
 }
