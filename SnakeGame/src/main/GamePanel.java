@@ -2,6 +2,8 @@ package main;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -19,7 +21,7 @@ public class GamePanel extends JPanel implements ActionListener {
 	static final int SCREEN_WIDTH = 800;
 	static final int SQUARE_SIZE = 50;
 	static final int BOARD_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / SQUARE_SIZE;
-	static final int DELAY = 120;
+	static final int DELAY = 85;
 	static int NUM_APPLES = 5;
 	final int x[] = new int[BOARD_UNITS];
 	final int y[] = new int[BOARD_UNITS];
@@ -29,7 +31,10 @@ public class GamePanel extends JPanel implements ActionListener {
 	int pointsEaten;
 	char direction = 'R';
 	char nextDirection;
-	boolean running = false;
+	boolean running = true;
+	boolean started = false;
+	boolean lost = false;
+	boolean restarted = false;
 
 	GamePanel() {
 		random = new Random();
@@ -42,17 +47,35 @@ public class GamePanel extends JPanel implements ActionListener {
 		y[1] = 3 * SQUARE_SIZE;
 		x[2] = 1 * SQUARE_SIZE;
 		y[2] = 3 * SQUARE_SIZE;
+		timer = new Timer(DELAY, this);
+		timer.start();
 		startGame();
 	}
 
-	public void gameOver() {
-		running = false;
+	public void gameOver(Graphics g) {
+		g.setColor(Color.red);
+		g.setFont(new Font("Times", Font.BOLD, 75));
+		FontMetrics metrics = getFontMetrics(g.getFont());
+		g.drawString("You Lose", (SCREEN_WIDTH - metrics.stringWidth("You Lose")) / 2, SCREEN_HEIGHT / 2);
+		lost = true;
 	}
 
 	public void startGame() {
+		System.out.println(started);
 		spawnApple();
-		timer = new Timer(DELAY, this);
-		timer.start();
+
+	}
+
+	public void restart() {
+		snakeLength = 3;
+		x[0] = 3 * SQUARE_SIZE;
+		y[0] = 3 * SQUARE_SIZE;
+		x[1] = 2 * SQUARE_SIZE;
+		y[1] = 3 * SQUARE_SIZE;
+		x[2] = 1 * SQUARE_SIZE;
+		y[2] = 3 * SQUARE_SIZE;
+		restarted = true;
+		repaint();
 	}
 
 	public void paintComponent(Graphics g) {
@@ -63,8 +86,18 @@ public class GamePanel extends JPanel implements ActionListener {
 	}
 
 	public void draw(Graphics g) {
-		drawApple(g);
-		drawSnake(g);
+		if (running) {
+			drawApple(g);
+			drawSnake(g);
+		} else if (lost) {
+			gameOver(g);
+
+		} else if (restarted) {
+			drawSnake(g);
+			drawApple(g);
+			restarted = false;
+		}
+
 	}
 
 	public void drawApple(Graphics g) {
@@ -178,41 +211,32 @@ public class GamePanel extends JPanel implements ActionListener {
 	}
 
 	public void checkCollision() {
-		switch (direction) {
-		case 'U':
-			for (int i = 1; i < snakeLength; i++) {
-				if (y[0] - SQUARE_SIZE == y[i] && x[0] == x[i] || y[0] - SQUARE_SIZE < 0) {
-					gameOver();
-				}
+		for (int i = snakeLength; i > 0; i--) {
+			if ((x[0] == x[i]) && (y[0] == y[i])) {
+				running = false;
+				lost = true;
 			}
-			break;
-
-		case 'D':
-			for (int i = 1; i < snakeLength; i++) {
-				if (y[0] + SQUARE_SIZE == y[i] && x[0] == x[i] || y[0] + SQUARE_SIZE >= SCREEN_HEIGHT) {
-					gameOver();
-				}
-			}
-			break;
-
-		case 'L':
-			for (int i = 1; i < snakeLength; i++) {
-				if (x[0] - SQUARE_SIZE == x[i] && y[0] == y[i] || x[0] - SQUARE_SIZE < 0) {
-					gameOver();
-				}
-			}
-			break;
-
-		case 'R':
-			for (int i = 1; i < snakeLength; i++) {
-				if (x[0] + SQUARE_SIZE == x[i] && y[0] == y[i] || x[0] + SQUARE_SIZE >= SCREEN_WIDTH) {
-					gameOver();
-				}
-			}
-			break;
 		}
-		
-		
+		if (x[0] < 0) {
+			running = false;
+			lost = true;
+		}
+
+		if (x[0] > SCREEN_WIDTH) {
+			running = false;
+			lost = true;
+		}
+
+		if (y[0] < 0) {
+			running = false;
+			lost = true;
+		}
+
+		if (y[0] > SCREEN_HEIGHT) {
+			running = false;
+			lost = true;
+		}
+
 	}
 
 	@Override
@@ -236,30 +260,40 @@ public class GamePanel extends JPanel implements ActionListener {
 					break;
 				}
 				nextDirection = 'U';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_W:
 				if (direction == 'D') {
 					break;
 				}
 				nextDirection = 'U';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_DOWN:
 				if (direction == 'U') {
 					break;
 				}
 				nextDirection = 'D';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_S:
 				if (direction == 'U') {
 					break;
 				}
 				nextDirection = 'D';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_LEFT:
 				if (direction == 'R') {
 					break;
 				}
 				nextDirection = 'L';
+				running = true;
+				started = true;
 				break;
 
 			case KeyEvent.VK_A:
@@ -267,12 +301,16 @@ public class GamePanel extends JPanel implements ActionListener {
 					break;
 				}
 				nextDirection = 'L';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_RIGHT:
 				if (direction == 'L') {
 					break;
 				}
 				nextDirection = 'R';
+				running = true;
+				started = true;
 				break;
 
 			case KeyEvent.VK_D:
@@ -280,9 +318,17 @@ public class GamePanel extends JPanel implements ActionListener {
 					break;
 				}
 				nextDirection = 'R';
+				running = true;
+				started = true;
 				break;
+
+			case KeyEvent.VK_R:
+				if (lost) {
+					System.out.println("restarted");
+					lost = false;
+					restart();
+				}
 			}
-			running = true;
 
 		}
 	}
