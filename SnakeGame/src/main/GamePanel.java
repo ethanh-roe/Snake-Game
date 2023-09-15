@@ -33,6 +33,8 @@ public class GamePanel extends JPanel implements ActionListener {
 	char nextDirection;
 	boolean running = true;
 	boolean started = false;
+	boolean lost = false;
+	boolean restarted = false;
 
 	GamePanel() {
 		random = new Random();
@@ -45,20 +47,35 @@ public class GamePanel extends JPanel implements ActionListener {
 		y[1] = 3 * SQUARE_SIZE;
 		x[2] = 1 * SQUARE_SIZE;
 		y[2] = 3 * SQUARE_SIZE;
+		timer = new Timer(DELAY, this);
+		timer.start();
 		startGame();
 	}
 
 	public void gameOver(Graphics g) {
 		g.setColor(Color.red);
-		g.setFont(new Font("Ink Free", Font.BOLD, 75));
+		g.setFont(new Font("Times", Font.BOLD, 75));
 		FontMetrics metrics = getFontMetrics(g.getFont());
 		g.drawString("You Lose", (SCREEN_WIDTH - metrics.stringWidth("You Lose")) / 2, SCREEN_HEIGHT / 2);
+		lost = true;
 	}
 
 	public void startGame() {
+		System.out.println(started);
 		spawnApple();
-		timer = new Timer(DELAY, this);
-		timer.start();
+
+	}
+
+	public void restart() {
+		snakeLength = 3;
+		x[0] = 3 * SQUARE_SIZE;
+		y[0] = 3 * SQUARE_SIZE;
+		x[1] = 2 * SQUARE_SIZE;
+		y[1] = 3 * SQUARE_SIZE;
+		x[2] = 1 * SQUARE_SIZE;
+		y[2] = 3 * SQUARE_SIZE;
+		restarted = true;
+		repaint();
 	}
 
 	public void paintComponent(Graphics g) {
@@ -72,11 +89,13 @@ public class GamePanel extends JPanel implements ActionListener {
 		if (running) {
 			drawApple(g);
 			drawSnake(g);
-		} else {
-			if (started) {
-				gameOver(g);
-			}
+		} else if (lost) {
+			gameOver(g);
 
+		} else if (restarted) {
+			drawSnake(g);
+			drawApple(g);
+			restarted = false;
 		}
 
 	}
@@ -195,22 +214,27 @@ public class GamePanel extends JPanel implements ActionListener {
 		for (int i = snakeLength; i > 0; i--) {
 			if ((x[0] == x[i]) && (y[0] == y[i])) {
 				running = false;
+				lost = true;
 			}
 		}
 		if (x[0] < 0) {
 			running = false;
+			lost = true;
 		}
 
 		if (x[0] > SCREEN_WIDTH) {
 			running = false;
+			lost = true;
 		}
 
 		if (y[0] < 0) {
 			running = false;
+			lost = true;
 		}
 
 		if (y[0] > SCREEN_HEIGHT) {
 			running = false;
+			lost = true;
 		}
 
 	}
@@ -236,30 +260,40 @@ public class GamePanel extends JPanel implements ActionListener {
 					break;
 				}
 				nextDirection = 'U';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_W:
 				if (direction == 'D') {
 					break;
 				}
 				nextDirection = 'U';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_DOWN:
 				if (direction == 'U') {
 					break;
 				}
 				nextDirection = 'D';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_S:
 				if (direction == 'U') {
 					break;
 				}
 				nextDirection = 'D';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_LEFT:
 				if (direction == 'R') {
 					break;
 				}
 				nextDirection = 'L';
+				running = true;
+				started = true;
 				break;
 
 			case KeyEvent.VK_A:
@@ -267,12 +301,16 @@ public class GamePanel extends JPanel implements ActionListener {
 					break;
 				}
 				nextDirection = 'L';
+				running = true;
+				started = true;
 				break;
 			case KeyEvent.VK_RIGHT:
 				if (direction == 'L') {
 					break;
 				}
 				nextDirection = 'R';
+				running = true;
+				started = true;
 				break;
 
 			case KeyEvent.VK_D:
@@ -280,10 +318,18 @@ public class GamePanel extends JPanel implements ActionListener {
 					break;
 				}
 				nextDirection = 'R';
+				running = true;
+				started = true;
 				break;
+
+			case KeyEvent.VK_R:
+				if (lost) {
+					System.out.println("restarted");
+					lost = false;
+					restart();
+				}
 			}
-			running = true;
-			started = true;
+
 		}
 	}
 }
