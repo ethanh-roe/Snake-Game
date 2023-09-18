@@ -17,11 +17,11 @@ import javax.swing.Timer;
 public class GamePanel extends JPanel implements ActionListener {
 	Random random;
 	Timer timer;
-	static final int SCREEN_HEIGHT = 800;
-	static final int SCREEN_WIDTH = 800;
+	static final int SCREEN_HEIGHT = 600;
+	static final int SCREEN_WIDTH = 600;
 	static final int SQUARE_SIZE = 50;
 	static final int BOARD_UNITS = (SCREEN_WIDTH * SCREEN_HEIGHT) / SQUARE_SIZE;
-	static final int DELAY = 85;
+	static final int DELAY = 100;
 	static int NUM_APPLES = 5;
 	final int x[] = new int[BOARD_UNITS];
 	final int y[] = new int[BOARD_UNITS];
@@ -34,6 +34,7 @@ public class GamePanel extends JPanel implements ActionListener {
 	boolean running = true;
 	boolean started = false;
 	boolean lost = false;
+	boolean won = false;
 	boolean restarted = false;
 
 	GamePanel() {
@@ -61,9 +62,19 @@ public class GamePanel extends JPanel implements ActionListener {
 	}
 
 	public void startGame() {
-		System.out.println(started);
 		spawnApple();
 
+	}
+
+	public boolean checkWinCondition() {
+		int area = ((SCREEN_WIDTH * SCREEN_HEIGHT) / SQUARE_SIZE) / SQUARE_SIZE;
+		if (snakeLength == area) {
+			running = false;
+			won = true;
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public void restart() {
@@ -84,8 +95,20 @@ public class GamePanel extends JPanel implements ActionListener {
 		draw(g);
 
 	}
+	
+	public void gameWon(Graphics g) {
+		g.setColor(Color.green);
+		g.setFont(new Font("Times", Font.BOLD, 75));
+		FontMetrics metrics = getFontMetrics(g.getFont());
+		g.drawString("You Win!", (SCREEN_WIDTH - metrics.stringWidth("You Win!")) / 2, SCREEN_HEIGHT / 2);
+	}
 
 	public void draw(Graphics g) {
+
+		if (checkWinCondition()) {
+			gameWon(g);
+		}
+
 		if (running) {
 			drawApple(g);
 			drawSnake(g);
@@ -196,7 +219,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
 	public void growSnake() {
 		snakeLength++;
-		System.out.println("score " + snakeLength);
 	}
 
 	public void checkApple() {
@@ -324,7 +346,6 @@ public class GamePanel extends JPanel implements ActionListener {
 
 			case KeyEvent.VK_R:
 				if (lost) {
-					System.out.println("restarted");
 					lost = false;
 					restart();
 				}
